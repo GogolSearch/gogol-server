@@ -53,8 +53,8 @@
         type="text"
         class="flex-grow px-4 py-3 text-lg focus:outline-none"
         placeholder="Search..."
-        onfocus="expandSearchBar();"
-        onkeydown="handleKeyDown(event)"
+        onfocus="() => {if (searchBar.value !== ''){expandSearchBar()}}"
+        oninput="debouncedSearch(event)"
         onblur="handleBlur()"
       >
       <!-- Clear input icon -->
@@ -74,10 +74,8 @@
     </div>
     <!-- Suggestions -->
     <div id="suggestions" class="hidden absolute w-full bg-white border border-gray-300 shadow-md rounded-b-3xl overflow-hidden mt-0">
-      <ul>
-        <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer" onclick="searchSuggestion('Gogol Translation')">Gogol Translation</li>
-        <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer" onclick="searchSuggestion('Gogol Maps')">Gogol Maps</li>
-        <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer" onclick="searchSuggestion('Gogol Images')">Gogol Images</li>
+      <ul id="suggestions-list">
+        <!-- Dynamically filled suggestions will go here -->
       </ul>
     </div>
   </div>
@@ -89,9 +87,11 @@
     const clearIcon = document.getElementById('clear-icon');
     const searchIcon = document.getElementById('search-icon');
     const pipe = document.getElementById('pipe');
+    const suggestionsList = document.getElementById('suggestions-list');
 
-    // Flag to track if suggestion click is happening
     let suggestionClicked = false;
+    let typingTimer; // For debounce functionality
+    let doneTypingInterval = 200; // 200 ms debounce time
 
     function expandSearchBar() {
         searchWrapper.classList.replace("rounded-3xl", "rounded-t-3xl");
@@ -111,16 +111,19 @@
     }
 
     function performSearch(value) {
+      if (value === "") {
+          resetSearchBar()
+      }
       const query = value.trim();
       if (query) {
-        window.location.href = `/search?q=${encodeURIComponent(query)}`;
-      }
-    }
-
-    // Handle Enter key press for search
-    function handleKeyDown(event) {
-      if (event.key === 'Enter') {
-        handleSearchBarSearch()
+        // Make the API call to /api/history?q=thesearch
+        fetch(`/api/history?q=${encodeURIComponent(query)}`)
+          .then(response => response.json())
+          .then(data => {
+            // Update the UI with the search results
+            updateSuggestions(data["data"]);
+          })
+          .catch(error => console.error('Error:', error));
       }
     }
 
@@ -130,29 +133,52 @@
 
     // Handle search for clicked suggestion
     function searchSuggestion(query) {
-      suggestionClicked = true; // Mark suggestion clicked
+      suggestionClicked = true;
       performSearch(query);
     }
 
     // Handle blur event
     function handleBlur() {
-      // Delay hiding suggestions until click has been processed
       setTimeout(() => {
         if (!suggestionClicked) {
           resetSearchBar();
         }
-        suggestionClicked = false; // Reset flag after the timeout
+        suggestionClicked = false;
       }, 200);
     }
 
-    // Close suggestions if clicking outside
+    // Debounced search handler
+    function debouncedSearch(event) {
+      clearTimeout(typingTimer); // Clear the previous timer
+      const query = event.target.value;
+      typingTimer = setTimeout(() => performSearch(query), doneTypingInterval);
+    }
+
+    function updateSuggestions(data) {
+      // Clear previous suggestions
+      suggestionsList.innerHTML = '';
+      console.log(data)
+      if (data && data.length > 0) {
+        // Loop through the results and create list items
+        data.forEach(item => {
+          const li = document.createElement('li');
+          li.classList.add('px-4', 'py-2', 'hover:bg-gray-100', 'cursor-pointer');
+          li.textContent = item; // Assuming the result has a 'name' property
+          li.onclick = () => searchSuggestion(item); // Call searchSuggestion on click
+          suggestionsList.appendChild(li);
+        });
+        expandSearchBar()
+      } else {
+          resetSearchBar()
+      }
+    }
+
     document.addEventListener('click', (e) => {
       if (!searchWrapper.contains(e.target) && !suggestions.contains(e.target)) {
         resetSearchBar();
       }
     });
 
-    // Prevent blur event when clicking inside the suggestions
     suggestions.addEventListener('mousedown', function(e) {
       e.stopPropagation();  // Prevent the click from reaching the input field
     });
