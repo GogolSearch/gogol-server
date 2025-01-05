@@ -28,9 +28,15 @@
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center font-sans">
 
-  <!-- Safe Search Button -->
-  <div class="absolute top-4 right-4">
-    <button class="bg-gray-200 text-gray-600 px-4 py-2 rounded hover:bg-gray-300">Safe Search</button>
+  <!-- Safe Search Checkbox -->
+  <div class="absolute top-4 right-4 flex items-center justify-center space-x-2">
+    <label for="safe-search-checkbox" class="text-gray-600">Safe Search</label>
+    <input
+      type="checkbox"
+      id="safe-search-checkbox"
+      class="rounded-full w-6 h-6 border-gray-300 focus:ring-2 focus:ring-blue-500"
+      onchange="handleCheckboxChange(event)"
+    >
   </div>
 
   <!-- Logo -->
@@ -56,6 +62,7 @@
         onfocus="() => {if (searchBar.value !== ''){expandSearchBar()}}"
         oninput="debouncedSearch(event)"
         onblur="handleBlur()"
+        onkeydown="handleEnterKey(event)"
       >
       <!-- Clear input icon -->
       <button onclick="clearInput()" id="clear-icon" class="hidden">
@@ -88,10 +95,50 @@
     const searchIcon = document.getElementById('search-icon');
     const pipe = document.getElementById('pipe');
     const suggestionsList = document.getElementById('suggestions-list');
+    const safeSearchCheckbox = document.getElementById('safe-search-checkbox');
 
     let suggestionClicked = false;
     let typingTimer; // For debounce functionality
     let doneTypingInterval = 200; // 200 ms debounce time
+
+    // Load Safe Search setting from cookies on page load
+    window.onload = () => {
+      const adultCookie = getCookie('adult');
+      if (adultCookie !== undefined) {
+        safeSearchCheckbox.checked = adultCookie === 'true';
+      } else {
+        setCookie('adult', 'false', 365);  // Set default cookie value to 'false'
+        safeSearchCheckbox.checked = false;
+      }
+    }
+
+    // Handle checkbox change
+    function handleCheckboxChange(event) {
+      const isChecked = event.target.checked;
+      setCookie('adult', isChecked.toString(), 365);  // Save to cookie
+    }
+
+    // Utility function to get a cookie value by name
+    function getCookie(name) {
+      const nameEQ = name + "=";
+      const ca = document.cookie.split(';');
+      for (let i = 0; i < ca.length; i++) {
+        let c = ca[i].trim();
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+      }
+      return undefined;
+    }
+
+    // Utility function to set a cookie
+    function setCookie(name, value, days) {
+      let expires = "";
+      if (days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+      }
+      document.cookie = name + "=" + (value || "") + expires + "; path=/";
+    }
 
     function expandSearchBar() {
         searchWrapper.classList.replace("rounded-3xl", "rounded-t-3xl");
@@ -110,7 +157,21 @@
       resetSearchBar(); // Reset search bar to default state
     }
 
+    function handleEnterKey(event) {
+        if (event.key === 'Enter') {  // Check if the Enter key is pressed
+          event.preventDefault();  // Prevent the default behavior (form submission)
+          performSearch(searchBar.value);  // Perform the search
+        }
+    }
+
     function performSearch(value) {
+      const query = value.trim();
+      if (query) {
+        window.location.href = `/search?q=${encodeURIComponent(query)}`;
+      }
+    }
+
+    function performHistorySearch(value) {
       if (value === "") {
           resetSearchBar()
       }
@@ -127,16 +188,9 @@
       }
     }
 
-    function handleSearchBarSearch(){
+    function handleSearchBarSearch(e) {
         performSearch(searchBar.value);
     }
-
-    // Handle search for clicked suggestion
-    function searchSuggestion(query) {
-      suggestionClicked = true;
-      performSearch(query);
-    }
-
     // Handle blur event
     function handleBlur() {
       setTimeout(() => {
@@ -151,7 +205,7 @@
     function debouncedSearch(event) {
       clearTimeout(typingTimer); // Clear the previous timer
       const query = event.target.value;
-      typingTimer = setTimeout(() => performSearch(query), doneTypingInterval);
+      typingTimer = setTimeout(() => performHistorySearch(query), doneTypingInterval);
     }
 
     function updateSuggestions(data) {
@@ -164,24 +218,14 @@
           const li = document.createElement('li');
           li.classList.add('px-4', 'py-2', 'hover:bg-gray-100', 'cursor-pointer');
           li.textContent = item; // Assuming the result has a 'name' property
-          li.onclick = () => searchSuggestion(item); // Call searchSuggestion on click
+          li.onclick = () => performSearch(item); // Call searchSuggestion on click
           suggestionsList.appendChild(li);
         });
         expandSearchBar()
       } else {
-          resetSearchBar()
+        resetSearchBar()
       }
     }
-
-    document.addEventListener('click', (e) => {
-      if (!searchWrapper.contains(e.target) && !suggestions.contains(e.target)) {
-        resetSearchBar();
-      }
-    });
-
-    suggestions.addEventListener('mousedown', function(e) {
-      e.stopPropagation();  // Prevent the click from reaching the input field
-    });
   </script>
 </body>
 </html>

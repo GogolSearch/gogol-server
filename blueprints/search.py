@@ -27,7 +27,7 @@ def search():
     if page < 1:
         page = 1
 
-    adult = session.get("adult", False)
+    adult = request.cookies.get("adult", False)
     try:
         if not isinstance(adult, bool):
             adult = utils.converters.str_to_bool(adult)

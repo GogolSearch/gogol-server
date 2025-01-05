@@ -8,5 +8,9 @@ class RedisCache:
     def add_query(self, *queries):
         return self._redis_client.lpush(self._queries_list_key,*queries)
 
+    def remove_query(self, *queries):
+        for q in queries:
+            self._redis_client.lrem(self._queries_list_key, 0, q)
+
     def get_all_queries(self):
         return self._redis_client.lrange(self._queries_list_key, 0, -1)

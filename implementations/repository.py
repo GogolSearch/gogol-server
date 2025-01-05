@@ -17,6 +17,7 @@ class QueryRepository:
         self._backend = backend
 
     def _add_to_history(self, query: str):
+        self._cache.remove_query(query)
         self._cache.add_query(query)
 
     def search(
@@ -28,15 +29,14 @@ class QueryRepository:
     ):
         res = self._backend.search(q, page, items_per_page, adult)
         self._add_to_history(q)
-
         return res
 
     def get_history(self, q:str, n: int):
         matching = []
         results = self._cache.get_all_queries()
         for r in results:
-            if q in r:
-                if len(results) <= n:
+            if q.lower() in r.lower():
+                if len(matching) <= n:
                     matching.append(r)
                 else:
                     break
