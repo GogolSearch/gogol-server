@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gogol - Search Results</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=close,search" />
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings:
+                    'FILL' 0,
+                    'wght' 400,
+                    'GRAD' 0,
+                    'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+
+<!-- Header with Tabs -->
+<div class="w-full bg-gray-100 px-4 py-5 flex flex-col sm:flex-row justify-between items-center mx-auto max-w-5xl">
+    <!-- Logo and Search Bar Wrapper -->
+    <div class="flex flex-col sm:flex-row items-center w-full justify-start">
+        <a href="/">
+            <h1 class="text-3xl font-bold text-blue-500 mb-4 sm:mb-0 sm:mr-4">Gogol</h1>
+        </a>
+        <div class="relative flex-grow w-full" id="search-container"> <!-- flex-grow added here -->
+            <div id="search-wrapper" class="flex items-center bg-white border border-gray-300 overflow-hidden rounded-3xl">
+                <input
+                        id="search-bar"
+                        type="text"
+                        class="flex-grow px-4 py-2 text-base focus:outline-none"
+                        onfocus="() => {if (searchBar.value !== ''){expandSearchBar()}}"
+                        oninput="debouncedSearch(event)"
+                        onblur="handleBlur()"
+                        onkeydown="handleEnterKey(event)"
+                >
+                <!-- Clear input icon -->
+                <button onclick="clearInput()" id="clear-icon" class="hidden">
+                    <span class="material-symbols-outlined text-gray-500 flex">
+                        close
+                    </span>
+                </button>
+                <!-- Pipe -->
+                <span id="pipe" class="hidden pipe bg-gray-400"></span>
+                <!-- Magnifying Glass (loupe) Icon -->
+                <button onclick="handleSearchBarSearch()" id="search-icon" class="mr-4">
+                    <span class="material-symbols-outlined text-[#8ab4f8] flex">
+                        search
+                    </span>
+                </button>
+            </div>
+            <!-- Suggestions -->
+            <div id="suggestions" class="hidden absolute w-full bg-white border border-gray-300 shadow-md rounded-b-3xl overflow-hidden mt-0">
+                <ul id="suggestions-list">
+                    <!-- Dynamically filled suggestions will go here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Safe Search Checkbox for Mobile and Desktop -->
+    <div class="text-gray-600 flex items-center sm:ml-4 mt-4 sm:mt-0 sm:ml-8">
+        <span class="text-sm sm:text-base">Safe Search:</span>
+        <input type="checkbox" id="safe-search-checkbox" class="ml-2 rounded-full w-5 h-5 sm:w-6 sm:h-6 border-gray-300 focus:ring-2 focus:ring-blue-500">
+    </div>
+</div>
+
+<!-- Search Results with padding adjustment -->
+<div id="search-results" class="mt-8 px-4 sm:px-5 max-w-3xl mx-auto">
+    <p class="text-gray-600">Showing results for: <strong id="query-display"></strong></p>
+    <ul id="results-list" class="mt-6 space-y-6"> <!-- Increased spacing between results -->
+        <li class="space-y-3"> <!-- Increased space within each result -->
+            <!-- Icon and URL above the title and description -->
+            <div class="flex items-center space-x-3">
+                <!-- Custom Icon for the result (replace with actual image URL) -->
+                <img src="https://en.wikipedia.org/favicon.ico" alt="Result Icon" class="w-6 h-6 border-thin border rounded-full"> <!-- Adjust size of icon -->
+                <!-- Non-clickable URL for the result in gray and smaller, with truncation -->
+                <span class="text-gray-400 text-sm max-w-xs truncate" title="https://example.com/a-long-url-to-test-the-truncation-effect-when-the-url-is-too-long-to-fit-in-the-available-space">https://example.com/a-long-url-to-test-the-truncation-effect-when-the-url-is-too-long-to-fit-in-the-available-space</span>
+            </div>
+            <!-- Title and Description below -->
+            <div class="flex flex-col">
+                <a href="#" class="text-blue-600 hover:underline text-base font-medium">Résultat 1 - Exemple de lien</a> <!-- Larger title -->
+                <p class="text-gray-600 text-sm line-clamp-2">Description courte du résultat 1...</p> <!-- Adjusted description size -->
+            </div>
+        </li>
+        <li class="space-y-3">
+            <!-- Icon and URL above the title and description -->
+            <div class="flex items-center space-x-3">
+                <!-- Custom Icon for the result (replace with actual image URL) -->
+                <img src="https://en.wikipedia.org/favicon.ico" alt="Result Icon" class="w-6 h-6 border-thin border rounded-full"> <!-- Adjust size of icon -->
+                <!-- Non-clickable URL for the result in gray and smaller, with truncation -->
+                <span class="text-gray-400 text-sm max-w-xs truncate" title="https://example.com/a-long-url-to-test-the-truncation-effect-when-the-url-is-too-long-to-fit-in-the-available-space">https://example.com/a-long-url-to-test-the-truncation-effect-when-the-url-is-too-long-to-fit-in-the-available-space</span>
+            </div>
+            <!-- Title and Description below -->
+            <div class="flex flex-col">
+                <a href="#" class="text-blue-600 hover:underline text-base font-medium">Résultat 2 - Exemple de lien</a> <!-- Larger title -->
+                <p class="text-gray-600 text-sm line-clamp-2">Description courte du résultat 2...</p> <!-- Adjusted description size -->
+            </div>
+        </li>
+        <li class="space-y-3">
+            <!-- Icon and URL above the title and description -->
+            <div class="flex items-center space-x-3">
+                <!-- Custom Icon for the result (replace with actual image URL) -->
+                <img src="https://en.wikipedia.org/favicon.ico" alt="Result Icon" class="w-6 h-6 border-thin border rounded-full"> <!-- Adjust size of icon -->
+                <!-- Non-clickable URL for the result in gray and smaller, with truncation -->
+                <span class="text-gray-400 text-sm max-w-xs truncate" title="https://example.com/a-long-url-to-test-the-truncation-effect-when-the-url-is-too-long-to-fit-in-the-available-space">https://example.com/a-long-url-to-test-the-truncation-effect-when-the-url-is-too-long-to-fit-in-the-available-space</span>
+            </div>
+            <!-- Title and Description below -->
+            <div class="flex flex-col">
+                <a href="#" class="text-blue-600 hover:underline text-base font-medium">Résultat 3 - Exemple de lien</a> <!-- Larger title -->
+                <p class="text-gray-600 text-sm line-clamp-2">Description courte du résultat 3...</p> <!-- Adjusted description size -->
+            </div>
+        </li>
+    </ul>
+</div>
+<script>
+    const searchWrapper = document.getElementById('search-wrapper');
+    const suggestions = document.getElementById('suggestions');
+    const searchBar = document.getElementById('search-bar');
+    const clearIcon = document.getElementById('clear-icon');
+    const searchIcon = document.getElementById('search-icon');
+    const pipe = document.getElementById('pipe');
+    const suggestionsList = document.getElementById('suggestions-list');
+    const safeSearchCheckbox = document.getElementById('safe-search-checkbox');
+    const searchContainer = document.getElementById('search-container');
+
+
+    let suggestionClicked = false; // Flag to track if a suggestion was clicked
+    let typingTimer; // For debounce functionality
+    let doneTypingInterval = 200; // 200 ms debounce time
+
+    // Load Safe Search setting from cookies on page load
+    window.onload = () => {
+        const adultCookie = getCookie('adult');
+        if (adultCookie !== undefined) {
+            safeSearchCheckbox.checked = adultCookie === 'true';
+        } else {
+            setCookie('adult', 'false', 365);  // Set default cookie value to 'false'
+            safeSearchCheckbox.checked = false;
+        }
+    }
+
+    // Handle checkbox change
+    function handleCheckboxChange(event) {
+        const isChecked = event.target.checked;
+        setCookie('adult', isChecked.toString(), 365);  // Save to cookie
+    }
+
+    // Utility function to get a cookie value by name
+    function getCookie(name) {
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+            let c = ca[i].trim();
+            if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+        }
+        return undefined;
+    }
+
+    // Utility function to set a cookie
+    function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "") + expires + "; path=/";
+    }
+
+    function expandSearchBar() {
+        searchWrapper.classList.replace("rounded-3xl", "rounded-t-3xl");
+        suggestions.classList.remove('hidden'); // Show suggestions
+    }
+
+    function resetSearchBar() {
+        searchWrapper.classList.replace("rounded-t-3xl", "rounded-3xl");
+        suggestions.classList.add('hidden'); // Hide suggestions
+        clearIcon.classList.add('hidden'); // Hide the clear icon
+        pipe.classList.add('hidden'); // Hide the pipe
+    }
+
+    function clearInput() {
+        searchBar.value = ''; // Clear the input
+        resetSearchBar(); // Reset search bar to default state
+    }
+
+    function handleEnterKey(event) {
+        if (event.key === 'Enter') {  // Check if the Enter key is pressed
+            event.preventDefault();  // Prevent the default behavior (form submission)
+            performSearch(searchBar.value);  // Perform the search
+        }
+    }
+
+    function performSearch(value) {
+        const query = value.trim();
+        if (query) {
+            window.location.href = `/search?q=${encodeURIComponent(query)}`;
+        }
+    }
+
+    function performHistorySearch(value) {
+        if (value === "") {
+            resetSearchBar();
+        }
+        const query = value.trim();
+        if (query) {
+            // Make the API call to /api/history?q=thesearch
+            fetch(`/api/history?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Update the UI with the search results
+                    updateSuggestions(data["data"]);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    }
+
+    function handleSearchBarSearch(e) {
+        performSearch(searchBar.value);
+    }
+
+    // Listen for clicks on suggestions to mark if a suggestion was clicked
+    suggestions.addEventListener('click', (event) => {
+        if (event.target.tagName === 'LI') {
+            suggestionClicked = true;
+            performSearch(event.target.textContent); // Perform search when suggestion is clicked
+        }
+    });
+
+    searchBar.addEventListener('focus', () => {
+        if (searchBar.value !== '') {
+            expandSearchBar();
+        }
+    });
+
+    // Debounced search handler
+    function debouncedSearch(event) {
+        clearTimeout(typingTimer); // Clear the previous timer
+        const query = event.target.value;
+        typingTimer = setTimeout(() => performHistorySearch(query), doneTypingInterval);
+    }
+
+    function updateSuggestions(data) {
+        // Clear previous suggestions
+        suggestionsList.innerHTML = '';
+        if (data && data.length > 0) {
+            // Loop through the results and create list items
+            data.forEach(item => {
+                const li = document.createElement('li');
+                li.classList.add('px-4', 'py-2', 'hover:bg-gray-100', 'cursor-pointer');
+                li.textContent = item; // Assuming the result has a 'name' property
+                suggestionsList.appendChild(li);
+            });
+            expandSearchBar();
+        } else {
+            resetSearchBar();
+        }
+    }
+
+    // Global listener on body for clicks outside of the search-container
+    document.body.addEventListener('click', (event) => {
+        if (!searchContainer.contains(event.target)) {
+            resetSearchBar(); // Hide suggestions when clicked outside
+        }
+    });
+</script>
+
+</body>
+</html>

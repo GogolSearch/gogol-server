@@ -41,191 +41,205 @@
 
   <!-- Logo -->
   <div class="text-center">
-    <h1 class="text-6xl font-bold">
-      <span class="text-blue-500">G</span>
-      <span class="text-red-500">o</span>
-      <span class="text-yellow-500">g</span>
-      <span class="text-blue-500">o</span>
-      <span class="text-green-500">l</span>
-    </h1>
+      <a href="/">
+          <h1 class="text-6xl font-bold">
+              <span class="text-blue-500">G</span>
+              <span class="text-red-500">o</span>
+              <span class="text-yellow-500">g</span>
+              <span class="text-blue-500">o</span>
+              <span class="text-green-500">l</span>
+          </h1>
+      </a>
     <p class="text-gray-500 mt-2">Google mais plus con</p>
   </div>
 
   <!-- Search Bar -->
-  <div class="mt-8 relative w-full max-w-xl" >
-    <div id="search-wrapper" class="flex items-center bg-white border border-gray-300 overflow-hidden rounded-3xl shadow-md search-bar-transition">
-      <input
-        id="search-bar"
-        type="text"
-        class="flex-grow px-4 py-3 text-lg focus:outline-none"
-        placeholder="Search..."
-        onfocus="() => {if (searchBar.value !== ''){expandSearchBar()}}"
-        oninput="debouncedSearch(event)"
-        onblur="handleBlur()"
-        onkeydown="handleEnterKey(event)"
-      >
-      <!-- Clear input icon -->
-      <button onclick="clearInput()" id="clear-icon" class="hidden">
-        <span class="material-symbols-outlined text-gray-500 flex">
-            close
-        </span>
-      </button>
-      <!-- Pipe -->
-      <span id="pipe" class="hidden pipe bg-gray-400"></span>
-      <!-- Magnifying Glass (loupe) Icon -->
-      <button onclick="handleSearchBarSearch()" id="search-icon" class="mr-4">
-        <span class="material-symbols-outlined text-[#8ab4f8] flex">
-            search
-        </span>
-      </button>
-    </div>
-    <!-- Suggestions -->
-    <div id="suggestions" class="hidden absolute w-full bg-white border border-gray-300 shadow-md rounded-b-3xl overflow-hidden mt-0">
-      <ul id="suggestions-list">
-        <!-- Dynamically filled suggestions will go here -->
-      </ul>
-    </div>
+  <div class="px-2 w-full mt-2 mb-10 max-w-xl" id="search-container">
+      <div class="mt-8 relative w-full">
+        <div id="search-wrapper" class="flex items-center bg-white border border-gray-300 overflow-hidden rounded-3xl shadow-md search-bar-transition">
+          <input
+            id="search-bar"
+            type="text"
+            class="flex-grow px-4 py-3 text-lg focus:outline-none"
+            onfocus="() => {if (searchBar.value !== ''){expandSearchBar()}}"
+            oninput="debouncedSearch(event)"
+            onkeydown="handleEnterKey(event)"
+          >
+          <!-- Clear input icon -->
+          <button onclick="clearInput()" id="clear-icon" class="hidden">
+            <span class="material-symbols-outlined text-gray-500 flex">
+                close
+            </span>
+          </button>
+          <!-- Pipe -->
+          <span id="pipe" class="hidden pipe bg-gray-400"></span>
+          <!-- Magnifying Glass (loupe) Icon -->
+          <button onclick="handleSearchBarSearch()" id="search-icon" class="mr-4">
+            <span class="material-symbols-outlined text-[#8ab4f8] flex">
+                search
+            </span>
+          </button>
+        </div>
+        <!-- Suggestions -->
+        <div id="suggestions" class="hidden absolute w-full bg-white border border-gray-300 shadow-md rounded-b-3xl overflow-hidden mt-0">
+          <ul id="suggestions-list">
+            <!-- Dynamically filled suggestions will go here -->
+          </ul>
+        </div>
+      </div>
   </div>
-
   <script>
-    const searchWrapper = document.getElementById('search-wrapper');
-    const suggestions = document.getElementById('suggestions');
-    const searchBar = document.getElementById('search-bar');
-    const clearIcon = document.getElementById('clear-icon');
-    const searchIcon = document.getElementById('search-icon');
-    const pipe = document.getElementById('pipe');
-    const suggestionsList = document.getElementById('suggestions-list');
-    const safeSearchCheckbox = document.getElementById('safe-search-checkbox');
+      const searchWrapper = document.getElementById('search-wrapper');
+      const suggestions = document.getElementById('suggestions');
+      const searchBar = document.getElementById('search-bar');
+      const clearIcon = document.getElementById('clear-icon');
+      const searchIcon = document.getElementById('search-icon');
+      const pipe = document.getElementById('pipe');
+      const suggestionsList = document.getElementById('suggestions-list');
+      const safeSearchCheckbox = document.getElementById('safe-search-checkbox');
+      const searchContainer = document.getElementById('search-container');
 
-    let suggestionClicked = false;
-    let typingTimer; // For debounce functionality
-    let doneTypingInterval = 200; // 200 ms debounce time
 
-    // Load Safe Search setting from cookies on page load
-    window.onload = () => {
-      const adultCookie = getCookie('adult');
-      if (adultCookie !== undefined) {
-        safeSearchCheckbox.checked = adultCookie === 'true';
-      } else {
-        setCookie('adult', 'false', 365);  // Set default cookie value to 'false'
-        safeSearchCheckbox.checked = false;
+      let suggestionClicked = false; // Flag to track if a suggestion was clicked
+      let typingTimer; // For debounce functionality
+      let doneTypingInterval = 200; // 200 ms debounce time
+
+      // Load Safe Search setting from cookies on page load
+      window.onload = () => {
+          const adultCookie = getCookie('adult');
+          if (adultCookie !== undefined) {
+              safeSearchCheckbox.checked = adultCookie === 'true';
+          } else {
+              setCookie('adult', 'false', 365);  // Set default cookie value to 'false'
+              safeSearchCheckbox.checked = false;
+          }
       }
-    }
 
-    // Handle checkbox change
-    function handleCheckboxChange(event) {
-      const isChecked = event.target.checked;
-      setCookie('adult', isChecked.toString(), 365);  // Save to cookie
-    }
-
-    // Utility function to get a cookie value by name
-    function getCookie(name) {
-      const nameEQ = name + "=";
-      const ca = document.cookie.split(';');
-      for (let i = 0; i < ca.length; i++) {
-        let c = ca[i].trim();
-        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+      // Handle checkbox change
+      function handleCheckboxChange(event) {
+          const isChecked = event.target.checked;
+          setCookie('adult', isChecked.toString(), 365);  // Save to cookie
       }
-      return undefined;
-    }
 
-    // Utility function to set a cookie
-    function setCookie(name, value, days) {
-      let expires = "";
-      if (days) {
-        const date = new Date();
-        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-        expires = "; expires=" + date.toUTCString();
+      // Utility function to get a cookie value by name
+      function getCookie(name) {
+          const nameEQ = name + "=";
+          const ca = document.cookie.split(';');
+          for (let i = 0; i < ca.length; i++) {
+              let c = ca[i].trim();
+              if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+          }
+          return undefined;
       }
-      document.cookie = name + "=" + (value || "") + expires + "; path=/";
-    }
 
-    function expandSearchBar() {
-        searchWrapper.classList.replace("rounded-3xl", "rounded-t-3xl");
-        suggestions.classList.remove('hidden'); // Show suggestions
-    }
-
-    function resetSearchBar() {
-        searchWrapper.classList.replace("rounded-t-3xl","rounded-3xl");
-        suggestions.classList.add('hidden'); // Hide suggestions
-        clearIcon.classList.add('hidden'); // Hide the clear icon
-        pipe.classList.add('hidden'); // Hide the pipe
-    }
-
-    function clearInput() {
-      searchBar.value = ''; // Clear the input
-      resetSearchBar(); // Reset search bar to default state
-    }
-
-    function handleEnterKey(event) {
-        if (event.key === 'Enter') {  // Check if the Enter key is pressed
-          event.preventDefault();  // Prevent the default behavior (form submission)
-          performSearch(searchBar.value);  // Perform the search
-        }
-    }
-
-    function performSearch(value) {
-      const query = value.trim();
-      if (query) {
-        window.location.href = `/search?q=${encodeURIComponent(query)}`;
+      // Utility function to set a cookie
+      function setCookie(name, value, days) {
+          let expires = "";
+          if (days) {
+              const date = new Date();
+              date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+              expires = "; expires=" + date.toUTCString();
+          }
+          document.cookie = name + "=" + (value || "") + expires + "; path=/";
       }
-    }
 
-    function performHistorySearch(value) {
-      if (value === "") {
-          resetSearchBar()
+      function expandSearchBar() {
+          searchWrapper.classList.replace("rounded-3xl", "rounded-t-3xl");
+          suggestions.classList.remove('hidden'); // Show suggestions
       }
-      const query = value.trim();
-      if (query) {
-        // Make the API call to /api/history?q=thesearch
-        fetch(`/api/history?q=${encodeURIComponent(query)}`)
-          .then(response => response.json())
-          .then(data => {
-            // Update the UI with the search results
-            updateSuggestions(data["data"]);
-          })
-          .catch(error => console.error('Error:', error));
+
+      function resetSearchBar() {
+          searchWrapper.classList.replace("rounded-t-3xl", "rounded-3xl");
+          suggestions.classList.add('hidden'); // Hide suggestions
+          clearIcon.classList.add('hidden'); // Hide the clear icon
+          pipe.classList.add('hidden'); // Hide the pipe
       }
-    }
 
-    function handleSearchBarSearch(e) {
-        performSearch(searchBar.value);
-    }
-    // Handle blur event
-    function handleBlur() {
-      setTimeout(() => {
-        if (!suggestionClicked) {
-          resetSearchBar();
-        }
-        suggestionClicked = false;
-      }, 200);
-    }
-
-    // Debounced search handler
-    function debouncedSearch(event) {
-      clearTimeout(typingTimer); // Clear the previous timer
-      const query = event.target.value;
-      typingTimer = setTimeout(() => performHistorySearch(query), doneTypingInterval);
-    }
-
-    function updateSuggestions(data) {
-      // Clear previous suggestions
-      suggestionsList.innerHTML = '';
-      console.log(data)
-      if (data && data.length > 0) {
-        // Loop through the results and create list items
-        data.forEach(item => {
-          const li = document.createElement('li');
-          li.classList.add('px-4', 'py-2', 'hover:bg-gray-100', 'cursor-pointer');
-          li.textContent = item; // Assuming the result has a 'name' property
-          li.onclick = () => performSearch(item); // Call searchSuggestion on click
-          suggestionsList.appendChild(li);
-        });
-        expandSearchBar()
-      } else {
-        resetSearchBar()
+      function clearInput() {
+          searchBar.value = ''; // Clear the input
+          resetSearchBar(); // Reset search bar to default state
       }
-    }
+
+      function handleEnterKey(event) {
+          if (event.key === 'Enter') {  // Check if the Enter key is pressed
+              event.preventDefault();  // Prevent the default behavior (form submission)
+              performSearch(searchBar.value);  // Perform the search
+          }
+      }
+
+      function performSearch(value) {
+          const query = value.trim();
+          if (query) {
+              window.location.href = `/search?q=${encodeURIComponent(query)}`;
+          }
+      }
+
+      function performHistorySearch(value) {
+          if (value === "") {
+              resetSearchBar();
+          }
+          const query = value.trim();
+          if (query) {
+              // Make the API call to /api/history?q=thesearch
+              fetch(`/api/history?q=${encodeURIComponent(query)}`)
+                  .then(response => response.json())
+                  .then(data => {
+                      // Update the UI with the search results
+                      updateSuggestions(data["data"]);
+                  })
+                  .catch(error => console.error('Error:', error));
+          }
+      }
+
+      function handleSearchBarSearch(e) {
+          performSearch(searchBar.value);
+      }
+
+      // Listen for clicks on suggestions to mark if a suggestion was clicked
+      suggestions.addEventListener('click', (event) => {
+          if (event.target.tagName === 'LI') {
+              suggestionClicked = true;
+              performSearch(event.target.textContent); // Perform search when suggestion is clicked
+          }
+      });
+
+      searchBar.addEventListener('focus', () => {
+          if (searchBar.value !== '') {
+              expandSearchBar();
+          }
+      });
+
+      // Debounced search handler
+      function debouncedSearch(event) {
+          clearTimeout(typingTimer); // Clear the previous timer
+          const query = event.target.value;
+          typingTimer = setTimeout(() => performHistorySearch(query), doneTypingInterval);
+      }
+
+      function updateSuggestions(data) {
+          // Clear previous suggestions
+          suggestionsList.innerHTML = '';
+          if (data && data.length > 0) {
+              // Loop through the results and create list items
+              data.forEach(item => {
+                  const li = document.createElement('li');
+                  li.classList.add('px-4', 'py-2', 'hover:bg-gray-100', 'cursor-pointer');
+                  li.textContent = item; // Assuming the result has a 'name' property
+                  suggestionsList.appendChild(li);
+              });
+              expandSearchBar();
+          } else {
+              resetSearchBar();
+          }
+      }
+
+      // Global listener on body for clicks outside of the search-container
+      document.body.addEventListener('click', (event) => {
+          if (!searchContainer.contains(event.target)) {
+              resetSearchBar(); // Hide suggestions when clicked outside
+          }
+      });
   </script>
+
 </body>
 </html>

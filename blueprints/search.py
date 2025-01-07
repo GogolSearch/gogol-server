@@ -35,8 +35,8 @@ def search():
         adult = False
 
     repo = current_app.config["query_repository"]
-    result = repo.search(q, page, items_per_page, adult)
-    return str(result)
+    results = repo.search(q, page, items_per_page, adult)
+    return render_template("search/search.html", results=results)
 
 @bp.route('/api/history', methods=['get'])
 def get_history():
