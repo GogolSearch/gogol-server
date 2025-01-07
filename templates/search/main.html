@@ -29,7 +29,7 @@
 <body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center font-sans">
 
   <!-- Safe Search Checkbox -->
-  <div class="absolute top-4 right-4 flex items-center justify-center space-x-2">
+  <div class="absolute top-4 right-4 flex items-center justify-center space-x-2 py-4 px-4">
     <label for="safe-search-checkbox" class="text-gray-600">Safe Search</label>
     <input
       type="checkbox"
@@ -61,7 +61,7 @@
             id="search-bar"
             type="text"
             class="flex-grow px-4 py-3 text-lg focus:outline-none"
-            onfocus="() => {if (searchBar.value !== ''){expandSearchBar()}}"
+            onfocus="searchBarFocusHandler(event)"
             oninput="debouncedSearch(event)"
             onkeydown="handleEnterKey(event)"
           >
@@ -112,6 +112,11 @@
           } else {
               setCookie('adult', 'false', 365);  // Set default cookie value to 'false'
               safeSearchCheckbox.checked = false;
+          }
+      }
+      function searchBarFocusHandler(event){
+          if (searchBar.value !== '' && suggestionsList.childElementCount !== 0){
+              expandSearchBar()
           }
       }
 
@@ -200,12 +205,6 @@
           if (event.target.tagName === 'LI') {
               suggestionClicked = true;
               performSearch(event.target.textContent); // Perform search when suggestion is clicked
-          }
-      });
-
-      searchBar.addEventListener('focus', () => {
-          if (searchBar.value !== '') {
-              expandSearchBar();
           }
       });
 
