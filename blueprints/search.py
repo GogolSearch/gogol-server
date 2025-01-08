@@ -43,7 +43,7 @@ def search():
     end_time = time.time()
     delta = (end_time - start_time) * 1000  # Convert seconds to milliseconds
 
-    return render_template("search/search.html", results=results, cleaned_query=html.escape(q), delta=delta)
+    return render_template("search/search.html", results=results, cleaned_query=html.escape(q), delta=round(delta))
 
 
 @bp.route('/api/history', methods=['get'])

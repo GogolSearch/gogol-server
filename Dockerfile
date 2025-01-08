@@ -4,6 +4,7 @@ FROM python:3.12
 # Set the working directory inside the container
 WORKDIR /app
 
+# Copy requirements.txt and application code into the container
 COPY requirements.txt /app/
 COPY . /app/
 
@@ -19,4 +20,9 @@ RUN apt-get update && \
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-CMD ["python", "main.py"]
+# Default environment variable for Gunicorn settings
+# These can be overridden by passing different values at runtime or in docker-compose.yml
+ENV GUNICORN_CMD_ARGS="--workers 3 --bind 0.0.0.0:8000"
+
+# Run Gunicorn to serve the Flask app
+CMD ["gunicorn", "main:app"]
