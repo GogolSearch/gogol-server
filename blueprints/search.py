@@ -1,5 +1,5 @@
-import functools
-import logging
+import html
+import time
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, jsonify, app, current_app
@@ -17,6 +17,9 @@ def main():
 
 @bp.route('/search', methods=['GET'])
 def search():
+    # Start time for measuring the delta
+    start_time = time.time()
+
     q = request.args.get('q')
     if not q:
         return redirect(url_for('search.main'))
@@ -36,7 +39,12 @@ def search():
 
     repo = current_app.config["query_repository"]
     results = repo.search(q, page, items_per_page, adult)
-    return render_template("search/search.html", results=results)
+    # Calculate the delta in milliseconds
+    end_time = time.time()
+    delta = (end_time - start_time) * 1000  # Convert seconds to milliseconds
+
+    return render_template("search/search.html", results=results, cleaned_query=html.escape(q), delta=delta)
+
 
 @bp.route('/api/history', methods=['get'])
 def get_history():

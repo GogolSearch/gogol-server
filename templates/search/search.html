@@ -34,6 +34,7 @@
                         onfocus="searchBarFocusHandler(event)"
                         oninput="debouncedSearch(event)"
                         onkeydown="handleEnterKey(event)"
+                        value="{{cleaned_query}}"
                 >
                 <!-- Clear input icon -->
                 <button onclick="clearInput()" id="clear-icon" class="hidden">
@@ -68,50 +69,30 @@
 
 <!-- Search Results with padding adjustment -->
 <div id="search-results" class="mt-8 px-4 sm:px-5 max-w-3xl mx-auto">
-    <p class="text-gray-600">Showing results for: <strong id="query-display"></strong></p>
-    <ul id="results-list" class="mt-6 space-y-6"> <!-- Increased spacing between results -->
-        <li class="space-y-3"> <!-- Increased space within each result -->
-            <!-- Icon and URL above the title and description -->
-            <div class="flex items-center space-x-3">
-                <!-- Custom Icon for the result (replace with actual image URL) -->
-                <img src="https://en.wikipedia.org/favicon.ico" alt="Result Icon" class="w-6 h-6 border-thin border rounded-full"> <!-- Adjust size of icon -->
-                <!-- Non-clickable URL for the result in gray and smaller, with truncation -->
-                <span class="text-gray-400 text-sm max-w-xs truncate" title="https://example.com/a-long-url-to-test-the-truncation-effect-when-the-url-is-too-long-to-fit-in-the-available-space">https://example.com/a-long-url-to-test-the-truncation-effect-when-the-url-is-too-long-to-fit-in-the-available-space</span>
-            </div>
-            <!-- Title and Description below -->
-            <div class="flex flex-col">
-                <a href="#" class="text-blue-600 hover:underline text-base font-medium">Résultat 1 - Exemple de lien</a> <!-- Larger title -->
-                <p class="text-gray-600 text-sm line-clamp-2">Description courte du résultat 1...</p> <!-- Adjusted description size -->
-            </div>
-        </li>
+    <p class="text-gray-600"><strong>{{results |count}}</strong> résultats pour <strong id="query-display">{{cleaned_query}}</strong> en <strong>{{delta}} ms</strong>.</p>
+    <ul id="results-list" class="mt-6 space-y-6">
+        {% for result in results %}
         <li class="space-y-3">
             <!-- Icon and URL above the title and description -->
             <div class="flex items-center space-x-3">
-                <!-- Custom Icon for the result (replace with actual image URL) -->
-                <img src="https://en.wikipedia.org/favicon.ico" alt="Result Icon" class="w-6 h-6 border-thin border rounded-full"> <!-- Adjust size of icon -->
-                <!-- Non-clickable URL for the result in gray and smaller, with truncation -->
-                <span class="text-gray-400 text-sm max-w-xs truncate" title="https://example.com/a-long-url-to-test-the-truncation-effect-when-the-url-is-too-long-to-fit-in-the-available-space">https://example.com/a-long-url-to-test-the-truncation-effect-when-the-url-is-too-long-to-fit-in-the-available-space</span>
+                <!-- Custom Icon for the result with fallback to white circle using if-else -->
+                {% if result.icon %}
+                <img src="{{ result.icon }}" alt="" class="w-6 h-6 border-thin border rounded-full" onerror="this.onerror=null;this.style.background='white';this.src='';">
+                {% else %}
+                <div class="w-6 h-6 border-thin border rounded-full bg-white"></div>
+                {% endif %}
+                <!-- Non-clickable URL with truncation -->
+                <span class="text-gray-400 text-sm max-w-xs truncate" title="{{ result.url }}">{{ result.url }}</span>
             </div>
             <!-- Title and Description below -->
             <div class="flex flex-col">
-                <a href="#" class="text-blue-600 hover:underline text-base font-medium">Résultat 2 - Exemple de lien</a> <!-- Larger title -->
-                <p class="text-gray-600 text-sm line-clamp-2">Description courte du résultat 2...</p> <!-- Adjusted description size -->
+                <a href="{{ result.url }}" class="text-blue-600 hover:underline text-base font-medium">{{ result.title
+                    or 'Titre indisponible'}}</a>
+                <p class="text-gray-600 text-sm line-clamp-2">{{ result.description or 'Description indisponible'}}</p>
             </div>
         </li>
-        <li class="space-y-3">
-            <!-- Icon and URL above the title and description -->
-            <div class="flex items-center space-x-3">
-                <!-- Custom Icon for the result (replace with actual image URL) -->
-                <img src="https://en.wikipedia.org/favicon.ico" alt="Result Icon" class="w-6 h-6 border-thin border rounded-full"> <!-- Adjust size of icon -->
-                <!-- Non-clickable URL for the result in gray and smaller, with truncation -->
-                <span class="text-gray-400 text-sm max-w-xs truncate" title="https://example.com/a-long-url-to-test-the-truncation-effect-when-the-url-is-too-long-to-fit-in-the-available-space">https://example.com/a-long-url-to-test-the-truncation-effect-when-the-url-is-too-long-to-fit-in-the-available-space</span>
-            </div>
-            <!-- Title and Description below -->
-            <div class="flex flex-col">
-                <a href="#" class="text-blue-600 hover:underline text-base font-medium">Résultat 3 - Exemple de lien</a> <!-- Larger title -->
-                <p class="text-gray-600 text-sm line-clamp-2">Description courte du résultat 3...</p> <!-- Adjusted description size -->
-            </div>
-        </li>
+        {% endfor %}
+
     </ul>
 </div>
 

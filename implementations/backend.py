@@ -1,5 +1,6 @@
 from typing import Dict, Any, List
 import psycopg
+from psycopg.rows import Row
 from psycopg_pool import ConnectionPool
 
 class PostgreSQLBackend:
@@ -77,7 +78,7 @@ class PostgreSQLBackend:
         """
         return self._in_transaction
 
-    def _get_connection(self) -> psycopg.Connection:
+    def _get_connection(self, **kwargs) -> psycopg.Connection:
         """
         Returns the current connection to be used for operations.
         If a transaction is active, it returns the transaction connection.
@@ -88,9 +89,9 @@ class PostgreSQLBackend:
         if self._in_transaction:
             return self._transaction_conn
         else:
-            return self._pool.getconn()
+            return self._pool.getconn(**kwargs)
 
-    def _get_cursor(self, connection) -> psycopg.Cursor | psycopg.ServerCursor:
+    def _get_cursor(self, connection, **kwargs) -> psycopg.Cursor | psycopg.ServerCursor:
         """
         Returns the current cursor to be used for operations.
         If a transaction is active, it returns the transaction cursor.
@@ -104,9 +105,9 @@ class PostgreSQLBackend:
         if self._in_transaction:
             return self._transaction_cur
         else:
-            return connection.cursor()
+            return connection.cursor(**kwargs)
 
-    def search(self, search_term: str, page: int, items_per_page: int, adult: bool) -> List[Dict[str, Any]]:
+    def search(self, search_term: str, page: int, items_per_page: int, adult: bool) -> List[Row]:
         """
         Searches the database for pages matching the search term with pagination.
 
@@ -126,10 +127,12 @@ class PostgreSQLBackend:
         SELECT 
             p.url_id, 
             u.url, 
-            p.title, 
+            p.title,
+            p.description, 
+            p.icon,
             0.7 * paradedb.score(p.url_id) + 0.3 * pr.rank AS score,
             paradedb.score(p.url_id) AS pdb_score,
-            pr.rank
+            pr.rank AS pr_score
         FROM 
             pages p
         JOIN 
