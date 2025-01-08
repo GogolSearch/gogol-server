@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, Any, List
 import psycopg
 from psycopg.rows import Row
@@ -107,7 +108,7 @@ class PostgreSQLBackend:
         else:
             return connection.cursor(**kwargs)
 
-    def search(self, search_term: str, page: int, items_per_page: int, adult: bool) -> List[Row]:
+    def search(self, search_term: str, page: int, items_per_page: int, safe_search: bool) -> List[Row]:
         """
         Searches the database for pages matching the search term with pagination.
 
@@ -115,16 +116,16 @@ class PostgreSQLBackend:
             search_term (str): The search term for querying the database.
             page (int): The page number for pagination.
             items_per_page (int): The number of results per page.
-            adult (bool): Adult content filtering
+            safe_search (bool): safe search
 
         Returns:
             List[Dict[str, Any]]: A list of matching search results with scores.
         """
         offset = (page - 1) * items_per_page
-        adult_formating = "" if adult else "(LOWER(metadata->>'rating')!='rta-5042-1996-1400-1577-rta' AND LOWER(metadata->>'rating')!='adult') AND"
+        adult_formating = "(LOWER(metadata->>'rating')!='rta-5042-1996-1400-1577-rta' AND LOWER(metadata->>'rating')!='adult') AND" if safe_search else ""
 
         query = f"""
-        SELECT 
+                SELECT 
             p.url_id, 
             u.url, 
             p.title,
@@ -132,17 +133,22 @@ class PostgreSQLBackend:
             p.icon,
             0.7 * paradedb.score(p.url_id) + 0.3 * pr.rank AS score,
             paradedb.score(p.url_id) AS pdb_score,
-            pr.rank AS pr_score
+            pr.rank AS pr_score,
+            COUNT(*) OVER () AS total_results  -- Get the total count of matching rows
         FROM 
             pages p
         JOIN 
             urls u ON u.id = p.url_id
         JOIN 
             page_rank pr ON pr.url_id = p.url_id
-        WHERE {adult_formating} (p.title @@@ %s OR p.description @@@ %s OR p.content @@@ %s)
+        WHERE 
+            {adult_formating} 
+            (p.title @@@ %s OR p.description @@@ %s OR p.content @@@ %s)
         ORDER BY score DESC
         LIMIT %s OFFSET %s;
+
         """
+        logging.debug(f"search query: {query}")
 
         connection = self._get_connection()
         cursor = self._get_cursor(connection)

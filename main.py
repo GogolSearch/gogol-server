@@ -163,6 +163,7 @@ def create_app(config):
     app.config["query_repository"] = query_repository
 
     def on_shutdown():
+        logging.info("Shutting down.")
         pool.close()
         redis_client.close()
 

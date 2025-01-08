@@ -35,7 +35,6 @@
       type="checkbox"
       id="safe-search-checkbox"
       class="rounded-full w-6 h-6 border-gray-300 focus:ring-2 focus:ring-blue-500"
-      onchange="handleCheckboxChange(event)"
     >
   </div>
 
@@ -106,11 +105,11 @@
 
       // Load Safe Search setting from cookies on page load
       window.onload = () => {
-          const adultCookie = getCookie('adult');
-          if (adultCookie !== undefined) {
-              safeSearchCheckbox.checked = adultCookie === 'true';
+          const safeSearchCookie = getCookie('safeSearch');
+          if (safeSearchCookie !== undefined) {
+              safeSearchCheckbox.checked = safeSearchCookie === 'true';
           } else {
-              setCookie('adult', 'false', 365);  // Set default cookie value to 'false'
+              setCookie('safeSearch', 'false', 365);  // Set default cookie value to 'false'
               safeSearchCheckbox.checked = false;
           }
       }
@@ -123,7 +122,8 @@
       // Handle checkbox change
       function handleCheckboxChange(event) {
           const isChecked = event.target.checked;
-          setCookie('adult', isChecked.toString(), 365);  // Save to cookie
+          setCookie('safeSearch', isChecked.toString(), 365);  // Save to cookie
+          window.location.reload()
       }
 
       // Utility function to get a cookie value by name
@@ -238,6 +238,7 @@
               resetSearchBar(); // Hide suggestions when clicked outside
           }
       });
+      safeSearchCheckbox.addEventListener("change", handleCheckboxChange)
   </script>
 
 </body>

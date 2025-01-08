@@ -30,20 +30,31 @@ def search():
     if page < 1:
         page = 1
 
-    adult = request.cookies.get("adult", False)
+    safe_search = request.cookies.get("safeSearch", False)
     try:
-        if not isinstance(adult, bool):
-            adult = utils.converters.str_to_bool(adult)
+        if not isinstance(safe_search, bool):
+            safe_search = utils.converters.str_to_bool(safe_search)
     except ValueError:
-        adult = False
+        safe_search = False
 
     repo = current_app.config["query_repository"]
-    results = repo.search(q, page, items_per_page, adult)
+    results = repo.search(q, page, items_per_page, safe_search)
     # Calculate the delta in milliseconds
     end_time = time.time()
     delta = (end_time - start_time) * 1000  # Convert seconds to milliseconds
+    total_results = results[0]["total_results"] if len(results) > 0 else 0
 
-    return render_template("search/search.html", results=results, cleaned_query=html.escape(q), delta=round(delta))
+    return render_template(
+        "search/search.html",
+        results=results,
+        cleaned_query=html.escape(q),
+        delta=round(delta),
+        total_results=total_results,
+        current_page=page,
+        min_page=1,
+        max_page=round(total_results / items_per_page),
+        q=q,
+    )
 
 
 @bp.route('/api/history', methods=['get'])

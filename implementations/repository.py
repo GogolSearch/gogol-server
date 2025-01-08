@@ -25,24 +25,25 @@ class QueryRepository:
         q: str,
         page,
         items_per_page,
-        adult,
+        safe_search,
     ):
-        res = self._backend.search(q, page, items_per_page, adult)
+        res = self._backend.search(q, page, items_per_page, safe_search)
         results_dict_format = []
         for r in res:
             record = {
-                "url_id": r[0],  # p.url_id
-                "url": r[1],  # u.url
-                "title": r[2],  # p.title
-                "description": r[3],  # p.description
-                "icon": r[4],  # p.icon
-                "score": r[5],  # Calculated score (0.7 * pdb_score + 0.3 * pr_score)
-                "pdb_score": r[6],  # paradedb.score(p.url_id)
-                "pr_score": r[7]  # pr.rank
+                "url_id": int(r[0]),  # p.url_id
+                "url": str(r[1]),  # u.url
+                "title": str(r[2]),  # p.title
+                "description": str(r[3]),  # p.description
+                "icon": str(r[4]),  # p.icon
+                "score": float(r[5]),  # Calculated score (0.7 * pdb_score + 0.3 * pr_score)
+                "pdb_score": float(r[6]),  # paradedb.score(p.url_id)
+                "pr_score": float(r[7]),  # pr.rank
+                "total_results": int(r[8]),
             }
             results_dict_format.append(record)
         self._add_to_history(q)
-        return res
+        return results_dict_format
 
     def get_history(self, q:str, n: int):
         matching = []
