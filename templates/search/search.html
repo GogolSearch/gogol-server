@@ -68,7 +68,7 @@
 {% if total_results > 0 %}
 <!-- Search Results with padding adjustment -->
 <div id="search-results" class="mt-8 px-4 sm:px-5 max-w-3xl mx-auto">
-    <p class="text-gray-600"><strong>{{total_results}}</strong> résultats pour <strong id="query-display">{{cleaned_query}}</strong> en <strong>{{delta}} ms</strong>.</p>
+    <p class="text-gray-600"><strong>{{total_results}}</strong> résultats pour <strong id="query-display">{{cleaned_query | safe}}</strong> en <strong>{{delta}} ms</strong>.</p>
     <ul id="results-list" class="mt-6 space-y-6">
         {% for result in results %}
         <li class="space-y-3">
@@ -85,8 +85,8 @@
             </div>
             <!-- Title and Description below -->
             <div class="flex flex-col">
-                <a href="{{ result.url }}" class="text-blue-600 hover:underline text-base font-medium">{{ result.title
-                    or 'Titre indisponible'}}</a>
+                <a href="{{ result.url }}" class="text-blue-600 hover:underline text-base font-medium">{{ (result.title
+                    or 'Titre indisponible') | safe}}</a>
                 <p class="text-gray-600 text-sm line-clamp-4">{{ (result.description or 'Déscription indisponible') | safe}}</p>
             </div>
         </li>
@@ -96,29 +96,29 @@
 </div>
 <div class="flex justify-center my-8 space-x-2">
     <a href="/search?start=0&q={{ cleaned_query | safe }}"
-       class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 {{ 'opacity-50 cursor-not-allowed' if start == 0 else '' }}"
+       class="flex items-center justify-center px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-center {{ 'opacity-50 cursor-not-allowed' if start == 0 else '' }} md:text-base text-xs"
        onclick="if({{ start }} == 0) return false;">
         First
     </a>
 
     <a href="/search?start={{ start - limit }}&q={{ cleaned_query | safe }}"
-       class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 {{ 'opacity-50 cursor-not-allowed' if start == 0 else '' }}"
+       class="flex items-center justify-center px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-center {{ 'opacity-50 cursor-not-allowed' if start == 0 else '' }} md:text-base text-xs"
        onclick="if({{ start }} == 0) return false;">
         Previous
     </a>
 
-    <span class="px-4 py-2 text-gray-700 font-medium">
+    <span class="flex items-center justify-center px-3 py-1 text-gray-700 font-medium md:text-base text-xs">
         Page {{ (start // limit) + 1 }} of {{ (total_results // limit) + 1 }}
     </span>
 
     <a href="/search?start={{ start + limit }}&q={{ cleaned_query | safe }}"
-       class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 {{ 'opacity-50 cursor-not-allowed' if start + limit >= total_results else '' }}"
+       class="flex items-center justify-center px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-center {{ 'opacity-50 cursor-not-allowed' if start + limit >= total_results else '' }} md:text-base text-xs"
        onclick="if({{ start + limit }} >= {{ total_results }}) return false;">
         Next
     </a>
 
     <a href="/search?start={{ total_results - (total_results % limit) }}&q={{ cleaned_query | safe }}"
-       class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 {{ 'opacity-50 cursor-not-allowed' if start + limit >= total_results else '' }}"
+       class="flex items-center justify-center px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-center {{ 'opacity-50 cursor-not-allowed' if start + limit >= total_results else '' }} md:text-base text-xs"
        onclick="if({{ start + limit }} >= {{ total_results }}) return false;">
         Last
     </a>
