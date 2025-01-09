@@ -34,7 +34,7 @@
                         onfocus="searchBarFocusHandler(event)"
                         oninput="debouncedSearch(event)"
                         onkeydown="handleEnterKey(event)"
-                        value="{{q}}"
+                        value="{{cleaned_query | safe}}"
                 >
                 <!-- Clear input icon -->
                 <button onclick="clearInput()" id="clear-icon" class="hidden">
@@ -59,17 +59,16 @@
             </div>
         </div>
     </div>
-
-    <!-- Safe Search Checkbox for Mobile and Desktop -->
+    <!--
     <div class="text-gray-600 flex items-center sm:ml-4 mt-4 sm:mt-0 sm:ml-8">
         <span class="text-sm sm:text-base">Safe Search:</span>
         <input type="checkbox" id="safe-search-checkbox" class="ml-2 rounded-full w-5 h-5 sm:w-6 sm:h-6 border-gray-300 focus:ring-2 focus:ring-blue-500">
-    </div>
+    </div> Safe Search Checkbox for Mobile and Desktop -->
 </div>
-
+{% if total_results > 0 %}
 <!-- Search Results with padding adjustment -->
 <div id="search-results" class="mt-8 px-4 sm:px-5 max-w-3xl mx-auto">
-    <p class="text-gray-600"><strong>{{total_results}}</strong> résultats pour <strong id="query-display">{{q}}</strong> en <strong>{{delta}} ms</strong>.</p>
+    <p class="text-gray-600"><strong>{{total_results}}</strong> résultats pour <strong id="query-display">{{cleaned_query}}</strong> en <strong>{{delta}} ms</strong>.</p>
     <ul id="results-list" class="mt-6 space-y-6">
         {% for result in results %}
         <li class="space-y-3">
@@ -88,36 +87,54 @@
             <div class="flex flex-col">
                 <a href="{{ result.url }}" class="text-blue-600 hover:underline text-base font-medium">{{ result.title
                     or 'Titre indisponible'}}</a>
-                <p class="text-gray-600 text-sm line-clamp-4">{{ result.description or 'Description indisponible' | safe}}</p>
+                <p class="text-gray-600 text-sm line-clamp-4">{{ (result.description or 'Déscription indisponible') | safe}}</p>
             </div>
         </li>
         {% endfor %}
 
     </ul>
 </div>
-<!-- Pagination controls -->
 <div class="flex justify-center my-8 space-x-2">
-    <!-- Previous Button -->
-    <a href="/search?page={{ current_page - 1 }}&q={{ q }}" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 {{ 'opacity-50 cursor-not-allowed' if current_page == 1 else '' }}"
-       {% if current_page == 1 %}
-       disabled
-       {% endif %}>
+    <a href="/search?start=0&q={{ cleaned_query | safe }}"
+       class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 {{ 'opacity-50 cursor-not-allowed' if start == 0 else '' }}"
+       onclick="if({{ start }} == 0) return false;">
+        First
+    </a>
+
+    <a href="/search?start={{ start - limit }}&q={{ cleaned_query | safe }}"
+       class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 {{ 'opacity-50 cursor-not-allowed' if start == 0 else '' }}"
+       onclick="if({{ start }} == 0) return false;">
         Previous
     </a>
 
-    <!-- Page Numbers (Optional) -->
     <span class="px-4 py-2 text-gray-700 font-medium">
-        Page {{ current_page }} of {{ max_page }}
+        Page {{ (start // limit) + 1 }} of {{ (total_results // limit) + 1 }}
     </span>
 
-    <!-- Next Button -->
-    <a href="/search?page={{ current_page + 1 }}&q={{ q }}" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 {{ 'opacity-50 cursor-not-allowed' if current_page == max_page else '' }}"
-       {% if current_page == max_page %}
-       disabled
-       {% endif %}>
+    <a href="/search?start={{ start + limit }}&q={{ cleaned_query | safe }}"
+       class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 {{ 'opacity-50 cursor-not-allowed' if start + limit >= total_results else '' }}"
+       onclick="if({{ start + limit }} >= {{ total_results }}) return false;">
         Next
     </a>
+
+    <a href="/search?start={{ total_results - (total_results % limit) }}&q={{ cleaned_query | safe }}"
+       class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 {{ 'opacity-50 cursor-not-allowed' if start + limit >= total_results else '' }}"
+       onclick="if({{ start + limit }} >= {{ total_results }}) return false;">
+        Last
+    </a>
 </div>
+{% else %}
+    <!-- No Results Found Section -->
+    <div class="text-center mt-12">
+        <p class="text-xl font-semibold text-gray-700">Aucun document trouvé</p>
+        <p class="text-gray-600 mt-4">Essayez les conseils suivants :</p>
+        <ul class="list-disc list-inside mt-4 text-gray-600 space-y-2">
+            <li>Vérifiez l'orthographe des mots-clés.</li>
+            <li>Essayez des mots plus généraux.</li>
+            <li>Utilisez des synonymes.</li>
+        </ul>
+    </div>
+{% endif %}
 
 
   <script>
@@ -128,7 +145,7 @@
       const searchIcon = document.getElementById('search-icon');
       const pipe = document.getElementById('pipe');
       const suggestionsList = document.getElementById('suggestions-list');
-      const safeSearchCheckbox = document.getElementById('safe-search-checkbox');
+      // const safeSearchCheckbox = document.getElementById('safe-search-checkbox');
       const searchContainer = document.getElementById('search-container');
 
 
@@ -137,6 +154,7 @@
       let doneTypingInterval = 200; // 200 ms debounce time
 
       // Load Safe Search setting from cookies on page load
+      /*
       window.onload = () => {
           const safeSearchCookie = getCookie('safeSearch');
           if (safeSearchCookie !== undefined) {
@@ -145,7 +163,7 @@
               setCookie('safeSearch', 'false', 365);  // Set default cookie value to 'false'
               safeSearchCheckbox.checked = false;
           }
-      }
+      }*/
       function searchBarFocusHandler(event){
           if (searchBar.value !== '' && suggestionsList.childElementCount !== 0){
               expandSearchBar()
@@ -271,7 +289,7 @@
               resetSearchBar(); // Hide suggestions when clicked outside
           }
       });
-      safeSearchCheckbox.addEventListener("change", handleCheckboxChange)
+      //safeSearchCheckbox.addEventListener("change", handleCheckboxChange)
   </script>
 </body>
 </html>

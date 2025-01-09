@@ -108,24 +108,21 @@ class PostgreSQLBackend:
         else:
             return connection.cursor(**kwargs)
 
-    def search(self, search_term: str, page: int, items_per_page: int, safe_search: bool) -> List[Row]:
+    def search(self, search_term: str, start: int, items_per_page: int) -> List[Row]:
         """
         Searches the database for pages matching the search term with pagination.
 
         Args:
             search_term (str): The search term for querying the database.
-            page (int): The page number for pagination.
+            start (int): at what page to start in result.
             items_per_page (int): The number of results per page.
-            safe_search (bool): safe search
 
         Returns:
             List[Dict[str, Any]]: A list of matching search results with scores.
         """
-        offset = (page - 1) * items_per_page
-        adult_formating = "(LOWER(metadata->>'rating')!='rta-5042-1996-1400-1577-rta' AND LOWER(metadata->>'rating')!='adult') AND" if safe_search else ""
-
+        offset = start
         query = f"""
-                SELECT 
+        SELECT 
             p.url_id, 
             u.url, 
             p.title,
@@ -141,9 +138,7 @@ class PostgreSQLBackend:
             urls u ON u.id = p.url_id
         JOIN 
             page_rank pr ON pr.url_id = p.url_id
-        WHERE 
-            {adult_formating} 
-            (p.title @@@ %s OR p.description @@@ %s OR p.content @@@ %s)
+        WHERE p.title @@@ %s OR p.description @@@ %s OR p.content @@@ %s
         ORDER BY score DESC
         LIMIT %s OFFSET %s;
 

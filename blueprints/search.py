@@ -21,39 +21,30 @@ def search():
     start_time = time.time()
 
     q = request.args.get('q')
+    cleaned_query = html.escape(q)
     if not q:
         return redirect(url_for('search.main'))
 
     items_per_page = current_app.config["web_items_per_page"]
-    page = request.args.get('page', 1, type=int)
+    start = request.args.get('start', 0, type=int)
 
-    if page < 1:
-        page = 1
-
-    safe_search = request.cookies.get("safeSearch", False)
-    try:
-        if not isinstance(safe_search, bool):
-            safe_search = utils.converters.str_to_bool(safe_search)
-    except ValueError:
-        safe_search = False
+    if start < 0:
+        start = 0
 
     repo = current_app.config["query_repository"]
-    results = repo.search(q, page, items_per_page, safe_search)
+    results = repo.search(cleaned_query, start, items_per_page)
     # Calculate the delta in milliseconds
     end_time = time.time()
     delta = (end_time - start_time) * 1000  # Convert seconds to milliseconds
     total_results = results[0]["total_results"] if len(results) > 0 else 0
-
     return render_template(
         "search/search.html",
         results=results,
-        cleaned_query=html.escape(q),
+        cleaned_query=cleaned_query,
         delta=round(delta),
         total_results=total_results,
-        current_page=page,
-        min_page=1,
-        max_page=round(total_results / items_per_page),
-        q=q,
+        start=start,
+        limit=items_per_page,
     )
 
 

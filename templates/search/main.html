@@ -28,7 +28,7 @@
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center font-sans">
 
-  <!-- Safe Search Checkbox -->
+  <!-- Safe Search Checkbox
   <div class="absolute top-4 right-4 flex items-center justify-center space-x-2 py-4 px-4">
     <label for="safe-search-checkbox" class="text-gray-600">Safe Search</label>
     <input
@@ -36,7 +36,7 @@
       id="safe-search-checkbox"
       class="rounded-full w-6 h-6 border-gray-300 focus:ring-2 focus:ring-blue-500"
     >
-  </div>
+  </div>-->
 
   <!-- Logo -->
   <div class="text-center">
@@ -95,7 +95,7 @@
       const searchIcon = document.getElementById('search-icon');
       const pipe = document.getElementById('pipe');
       const suggestionsList = document.getElementById('suggestions-list');
-      const safeSearchCheckbox = document.getElementById('safe-search-checkbox');
+      // const safeSearchCheckbox = document.getElementById('safe-search-checkbox');
       const searchContainer = document.getElementById('search-container');
 
 
@@ -104,6 +104,7 @@
       let doneTypingInterval = 200; // 200 ms debounce time
 
       // Load Safe Search setting from cookies on page load
+      /*
       window.onload = () => {
           const safeSearchCookie = getCookie('safeSearch');
           if (safeSearchCookie !== undefined) {
@@ -112,7 +113,7 @@
               setCookie('safeSearch', 'false', 365);  // Set default cookie value to 'false'
               safeSearchCheckbox.checked = false;
           }
-      }
+      }*/
       function searchBarFocusHandler(event){
           if (searchBar.value !== '' && suggestionsList.childElementCount !== 0){
               expandSearchBar()
@@ -238,7 +239,7 @@
               resetSearchBar(); // Hide suggestions when clicked outside
           }
       });
-      safeSearchCheckbox.addEventListener("change", handleCheckboxChange)
+      //safeSearchCheckbox.addEventListener("change", handleCheckboxChange)
   </script>
 
 </body>

@@ -1,3 +1,5 @@
+import html
+
 from implementations.backend import PostgreSQLBackend
 from implementations.cache import  RedisCache
 
@@ -23,13 +25,14 @@ class QueryRepository:
     def search(
         self,
         q: str,
-        page,
+        start,
         items_per_page,
-        safe_search,
     ):
-        res = self._backend.search(q, page, items_per_page, safe_search)
+        res = self._backend.search(q, start, items_per_page)
         results_dict_format = []
         for r in res:
+            if r[5] is None:
+                print(r)
             record = {
                 "url_id": int(r[0]),  # p.url_id
                 "url": str(r[1]),  # u.url
