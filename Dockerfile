@@ -1,3 +1,17 @@
+FROM node:latest AS builder
+
+WORKDIR /app
+COPY package.json .
+COPY package-lock.json .
+COPY tailwind.config.js .
+COPY static static
+COPY templates templates
+
+RUN npm install
+RUN npx tailwindcss -i ./static/css/input.css -o ./static/css/style.css
+
+
+
 # Use an official Python runtime as a parent image
 FROM python:3.12
 
@@ -7,6 +21,7 @@ WORKDIR /app
 # Copy requirements.txt and application code into the container
 COPY requirements.txt /app/
 COPY . /app/
+COPY --from=builder /app .
 
 # Install system dependencies required for the application
 RUN apt-get update && \
