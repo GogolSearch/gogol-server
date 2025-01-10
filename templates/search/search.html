@@ -108,7 +108,7 @@
     </a>
 
     <span class="flex items-center justify-center px-3 py-1 text-gray-700 font-medium md:text-base text-xs">
-        Page {{ (start // limit) + 1 }} of {{ (total_results // limit) + 1 }}
+        Page {{ (start // limit) + 1 }} of {{ (total_results + limit - 1) // limit }}
     </span>
 
     <a href="/search?start={{ start + limit }}&q={{ cleaned_query | safe }}"
